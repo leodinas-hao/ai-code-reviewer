@@ -22,9 +22,9 @@ sequenceDiagram
 ## to setup
 ```powershell
 # clone the project
-git clone https://gitlab.macquarietelecom.com/lhao/ai-merge-request-reviewer.git
+git clone https://gitlab.macquarietelecom.com/lhao/ai-code-reviewer.git
 
-cd ai-merge-request-reviewer
+cd ai-code-reviewer
 
 # put environment variables
 touch .env
@@ -41,7 +41,7 @@ where.exe pip
 pip install -r requirements.txt
 
 # to run the app
-./app.py
+./src/api_code_reviewer/app.py
 
 # to deactivate
 deactivate
