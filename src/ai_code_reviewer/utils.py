@@ -1,6 +1,6 @@
 from logging import config
 import os
-from typing import List, Optional
+from typing import List
 
 from openai import AzureOpenAI
 from openai.types.chat import ChatCompletion, ChatCompletionMessageParam
