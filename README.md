@@ -31,20 +31,27 @@ touch .env
 
 # setup venv
 python -m venv .venv
-# activate venv
+# activate venv on windows
 .\.venv\Scripts\activate
-
 # check if venv works
 where.exe pip
-
 # install dependencies
 pip install -r requirements.txt
-
-# to run the app
-.venv/bin/python -m src.api_code_reviewer.app
-
 # to deactivate
 deactivate
+
+# alternatively, setup via pipenv
+python -m pip install pipenv  # only if pipenv not installed yet
+# init venv
+pipenv shell
+# install dependencies
+pipenv install
+```
+
+## to run the web listener
+```sh
+# to run the app
+.\.venv\Scripts\python.exe -m src.ai_code_reviewer.app
 ```
 
 ## .env
