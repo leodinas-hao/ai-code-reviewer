@@ -1,17 +1,12 @@
 import os
 import logging
+from typing import List
 
-from dotenv import load_dotenv
 import requests
 from flask import Flask, request
-import openai
+from openai.types.chat import ChatCompletionMessageParam
 
-# setup logger
-logging.basicConfig(filename='logs.log', level=logging.DEBUG, format='%(asctime)s | %(levelname)s | %(message)s')
-
-# load .env
-load_dotenv(os.path.join(os.getcwd(), '.env'))
-logging.info(f'loading {os.getcwd()}.env')
+from .utils import chat_openai
 
 # get gitlab webhook info
 WEBHOOK_PORT = int(os.getenv('WEBHOOK_PORT', 8080))
@@ -21,12 +16,11 @@ WEBHOOK_TOKEN = os.getenv('WEBHOOK_TOKEN')
 GITLAB_URL = os.getenv('GITLAB_URL')
 GITLAB_TOKEN = os.getenv('GITLAB_TOKEN', '')
 
-# setup azure openai credentials
-openai.api_type = "azure"
-openai.api_base = os.getenv('OPENAI_API_KEY')
-openai.api_key = os.getenv('OPENAI_API_BASE')
-openai.api_version = os.getenv('OPENAI_API_VERSION')
 
+# add logger
+logger = logging.getLogger(__name__)
+
+# setup flask app
 app = Flask(__name__)
 
 
@@ -56,22 +50,23 @@ def webhook():
       # ask chatgpt to review
       pre_prompt = "As a senior developer, review the following code changes and answer code review questions about them. The code changes are provided as git diff strings:"
       questions = "\n\nQuestions:\n1. Can you summarise the changes in a succinct bullet point list\n2. In the diff, are the added or changed code written in a clear and easy to understand way?\n3. Does the code use comments, or descriptive function and variables names that explain what they mean?\n4. based on the code complexity of the changes, could the code be simplified without breaking its functionality? if so can you give example snippets?\n5. Can you find any bugs, if so please explain and reference line numbers?\n6. Do you see any code that could induce security issues?\n"
-      messages = [
-          {"role": "system",
-              "content": "You are a senior developer reviewing code changes."},
-          {"role": "user",
-           "content": f"{pre_prompt}\n\n{''.join(diffs)}{questions}"},
-          {"role": "assistant",
-           "content": "Format the response so it renders nicely in GitLab, with nice and organized markdown (use code blocks if needed), and send just the response no comments on the request, when answering include a short version of the question, so we know what it is."},
+      messages: List[ChatCompletionMessageParam] = [
+        {
+          "role": "system",
+          "content": "You are a senior developer reviewing code changes."
+        },
+        {
+          "role": "user",
+          "content": f"{pre_prompt}\n\n{''.join(diffs)}{questions}"
+        },
+        {
+          "role": "assistant",
+          "content": "Format the response so it renders nicely in GitLab, with nice and organized markdown (use code blocks if needed), and send just the response no comments on the request, when answering include a short version of the question, so we know what it is."
+        },
       ]
       try:
-        completions = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            temperature=0.7,
-            stream=False,
-            messages=messages
-        )
-        answer = completions.choices[0].message["content"].strip()
+        res = chat_openai(messages, temperature=0.7, stream=False)
+        answer = f'{res.choices[0].message.content}'.strip()
         answer += "\n\nFor reference, i was given the following questions: \n"
         for question in questions.split("\n"):
           answer += f"\n{question}"
