@@ -41,7 +41,7 @@ where.exe pip
 pip install -r requirements.txt
 
 # to run the app
-./src/api_code_reviewer/app.py
+.venv/bin/python -m src.api_code_reviewer.app
 
 # to deactivate
 deactivate
