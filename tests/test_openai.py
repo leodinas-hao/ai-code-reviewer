@@ -39,7 +39,8 @@ def test_chat_openai(msgs):
 
 
 @pytest.mark.parametrize('pid, mr_id', [
-  (10, 1)
+  (10, 1),
+  (2, 1),
 ])
 def test_git_diff_code_review(pid, mr_id):
   res = get_diffs(pid, mr_id)
